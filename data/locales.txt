@@ -1,0 +1,10 @@
+en-AU
+ru-RU
+nl-B
+ar-EG
+sk
+vi
+nb-NO
+es-A
+tr-T
+sl
