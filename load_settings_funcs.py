@@ -57,15 +57,21 @@ def load_surnames(count):
 def load_cookies(load_lines_count, delete_used=False):
     # Сколько строк прочли (load_lines) , столько удалили из файла
     cookies = []
+
     with open(settings_dict['cookies_path']) as f:
-        raw_cookies = [line.rstrip() for line in f.readlines()[:load_lines_count]]
+        # raw_cookies = [line.rstrip() for line in f.readlines()[:load_lines_count]]
+        raw_cookies = [line.rstrip() for line in f.readlines()]
+        if load_lines_count != -1:
+            raw_cookies = raw_cookies[:load_lines_count]
+    load_lines_count = len(raw_cookies)
+
     cookies = [Cookie(c.split(';')[0], c.split(';')[1], c.split(';')[2], c.split(';')[3]) for c in raw_cookies]
     if delete_used:
         with open(settings_dict['cookies_path'], 'r') as f:
             data = f.read().splitlines(True)
         with open(settings_dict['cookies_path'], 'w') as f:
             f.writelines(data[load_lines_count:])
-    return cookies
+    return cookies, load_lines_count
 
 
 def load_locales():
@@ -81,9 +87,11 @@ def load_devices():
 
 
 def load_data(number_of_iterations, delete_used_cookies):
+    SettingsData.cookies, number_of_iterations = load_cookies(number_of_iterations, delete_used_cookies)
+
     SettingsData.proxies = load_proxies(settings_dict['gen_str_for_proxy'], number_of_iterations)
     SettingsData.names = load_names(number_of_iterations)
     SettingsData.surnames = load_surnames(number_of_iterations)
-    SettingsData.cookies = load_cookies(number_of_iterations, delete_used_cookies)
     SettingsData.locales = load_locales()
     SettingsData.devices = load_devices()
+    return number_of_iterations

@@ -1,19 +1,22 @@
-import json, random, string, hashlib, requests, threading, time, sys
+import json, random, string, hashlib, requests, threading, time, sys, argparse
 from load_settings_funcs import load_settings, load_data
 from settings_data import SettingsData
 import work_with_net as wwn
 
 
-def reg_account_wrapper(i, print_status_code):
-    next = 3
-    try_reg = 0
+def reg_account_wrapper(i, print_status_code, new_tech_data):
     repeat_reg = False
+    user_agent = wwn.generate_user_agent(SettingsData.devices, SettingsData.locales)
+    guid = wwn.generate_guid()
+    guid2 = wwn.generate_guid()
+    guid3 = wwn.generate_guid()
+    adid = wwn.generate_guid()
+    device_id = wwn.generate_device_id()
     with requests.Session() as s:
-
         while True:
             # if try_reg > 0:
             #     repeat_reg = True
-            if not reg_account(s, i, print_status_code, repeat_reg):
+            if not reg_account(s, i, print_status_code, new_tech_data, guid, guid2, guid3, adid, device_id, user_agent, repeat_reg):
                 break
             else:
                 repeat_reg = True
@@ -23,20 +26,21 @@ def reg_account_wrapper(i, print_status_code):
             #     break
 
 
-def reg_account(session, i, print_status_code, repeat):
+def reg_account(session, i, print_status_code, new_tech_data, guid, guid2, guid3, adid, device_id, user_agent, repeat):
+    if new_tech_data:
+        user_agent = wwn.generate_user_agent(SettingsData.devices, SettingsData.locales)
+        guid = wwn.generate_guid()
+        guid2 = wwn.generate_guid()
+        guid3 = wwn.generate_guid()
+        adid = wwn.generate_guid()
+        device_id = wwn.generate_device_id()
+
     account_created = False
-    user_agent = wwn.generate_user_agent(SettingsData.devices, SettingsData.locales)
-    guid = wwn.generate_guid()
-    guid2 = wwn.generate_guid()
-    guid3 = wwn.generate_guid()
-    adid = wwn.generate_guid()
+
     csrftoken = SettingsData.cookies[i].csrftoken
-    # print(len(SettingsData.names))
-    # time.sleep(10)
     mail = wwn.generate_mail(SettingsData.names[i])
     username = wwn.generate_username(mail)
     surname = SettingsData.surnames[i]
-    device_id = wwn.generate_device_id()
 
     sn_nonce = wwn.generate_sn_nonce(mail)
     pw = wwn.generate_pw()
@@ -45,20 +49,6 @@ def reg_account(session, i, print_status_code, repeat):
     encrypted_data = wwn.encrypt_data_sha256(data)
     url_encoded_data = wwn.url_encode(data)
 
-    # print('user_agent: {user_agent}\n'
-    #       'csrftoken: {csrftoken}\n'
-    #       'username: {username}\n'
-    #       'device_id: {device_id}\n'
-    #       'mail: {mail}\n'
-    #       'sn_nonce: {sn_nonce}\n'
-    #       'pw: {pw}\n'.format(
-    #     user_agent=user_agent,
-    #     csrftoken=csrftoken,
-    #     username=username,
-    #     device_id=device_id,
-    #     mail=mail,
-    #     sn_nonce=sn_nonce,
-    #     pw=pw))
     try:
         resp = wwn.reg_request(user_agent, SettingsData.cookies[i], encrypted_data, url_encoded_data, session, SettingsData.proxies, i, repeat)
         if print_status_code:
@@ -70,7 +60,7 @@ def reg_account(session, i, print_status_code, repeat):
             # print(json.loads(resp.text))
             ds_user_id = json.loads(resp.text)['created_user']['pk']
             with open('goods.txt', 'a') as f:
-                text_to_save = '{username}:{pw}-||{device_id};{guid2};{guid};{adid}|ds_user={username};' \
+                text_to_save = '{username}:{pw}||{device_id};{guid2};{guid};{adid}|ds_user={username};' \
                                'rur={rur};mid={mid};csrftoken={csrftoken};ds_user_id={ds_user_id};' \
                                'sessionid={session_id};is_starred_enabled=yes;urlgen=;||'.format(username=username, pw=pw,
                                                         device_id=device_id,
@@ -82,12 +72,7 @@ def reg_account(session, i, print_status_code, repeat):
                                                         session_id=session.cookies.get_dict()['sessionid'])
                 f.write(text_to_save)
                 f.write('\n')
-        # with open('resp_text.txt', 'a') as f:
-        #     f.write('server output\n')
-        #     f.write(resp.text)
-        #     f.write('\n')
-        #     f.write(str(session.cookies.get_dict()))
-        #     f.write('\n\n')
+
     except requests.exceptions.ProxyError:
         print('requests.exceptions.ProxyError #', i)
 
@@ -96,55 +81,53 @@ def reg_account(session, i, print_status_code, repeat):
 
 
 if __name__ == '__main__':
-    print_status_code = False
-    delete_used_cookies = False
-    if len(sys.argv) >= 3:
-        number_of_threads, number_of_iterations = sys.argv[1:3]
-        number_of_threads = int(number_of_threads)
-        number_of_iterations = int(number_of_iterations)
-        if len(sys.argv) >= 4:
-            for arg in sys.argv:
-                if arg =='/O':
-                    print_status_code = True
-                if arg == '/D':
-                    delete_used_cookies = True
+    parser = argparse.ArgumentParser(description='my args')
+    parser.add_argument('number_of_threads', type=int, help='number of threads')
 
-    else:
-        print('main.py M N [/O] [/D]')
-        print('M - threads, N - iterations, /O - необязательный ключ Output status code, /D - необязательный ключ'
-              'для удаления использованных куки из файла')
-        sys.exit()
-    # number_of_threads = 5
-    # number_of_iterations = 300
+    parser.add_argument('--iters', type=int, default=-1,
+                        help='iterations (если не указывать, токоличество итераций будет бесконечным)')
+
+    parser.add_argument('--delete_used_cookies', type=bool, default=False,
+                        help='удаление использованных куки из файла')
+
+    parser.add_argument('--status_code', type=bool, default=False,
+                        help='выводить status code от серверва')
+
+    parser.add_argument('--new_tech_data', type=bool, default=False,
+                        help='генерировать новые тех данные при повторной попытке регистрации')
+
+    my_args = parser.parse_args()
+    number_of_threads = my_args.number_of_threads
+    number_of_iterations = my_args.iters
+    print_status_code = my_args.status_code
+    delete_used_cookies = my_args.delete_used_cookies
+    new_tech_data = my_args.new_tech_data
+    infinite_iterations = True if number_of_iterations == -1 else False
 
     load_settings()
 
-    load_data(number_of_iterations, delete_used_cookies)
-
-    # SettingsData.mails = wwn.generate_mails(SettingsData.names, number_of_iterations)
-
-    # SettingsData.usernames = wwn.generate_usernames(SettingsData.mails)
+    number_of_iterations = load_data(number_of_iterations, delete_used_cookies)
 
     print_timeout = 10
     if number_of_threads >= 50:
         print_timeout *= 2.5
         if number_of_threads >= 100:
             print_timeout *= 2
-    # if print_status_code:
-    #     print_timeout = 1
 
-    for i in range(number_of_iterations):
-        while len(threading.enumerate()) - 1 >= number_of_threads:
-            time.sleep(0.001)
+    while True:
+        for i in range(number_of_iterations):
+            while len(threading.enumerate()) - 1 >= number_of_threads:
+                time.sleep(0.001)
 
-        th = threading.Thread(target=reg_account_wrapper, args=(i, print_status_code,))
-        th.start()
+            th = threading.Thread(target=reg_account_wrapper, args=(i, print_status_code, new_tech_data))
+            th.start()
 
-        if i % print_timeout == 0:
-            print('iters: ', i)
-            print('threads: ', len(threading.enumerate())-1)
+            if i % print_timeout == 0:
+                print('iters: ', i)
+                print('threads: ', len(threading.enumerate())-1)
 
-
+        if not infinite_iterations:
+            break
 
 
 

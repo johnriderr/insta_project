@@ -1,0 +1,15 @@
+{
+    "proxy_type": "http",
+    "gen_str_for_proxy": "yes",
+    "version": "77.0.0.20.113",
+    "version_code": "139237670",
+    "key": "2b3c3a3947b5dcb512d71de85243f4d74776ca7d85d83c9ef5191808205d7976",
+    "names_path": "data/Names.txt",
+    "surnames_path": "data/Surnames.txt",
+    "cookies_path": "data/cookies.txt",
+    "devices_path": "data/devices.txt",
+    "locales_path": "data/locales.txt",
+    "proxies_path": "data/proxy.txt",
+    "save_accounts_path": "data/accounts.txt"
+
+}
