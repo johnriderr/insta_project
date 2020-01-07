@@ -56,7 +56,7 @@ def reg_account(session, i, print_status_code, new_tech_data, guid, guid2, guid3
         if 'created_user' in json.loads(resp.text):
             account_created = True
             if resp.ok:
-                print('ok # {}'.format(i))
+                print('ok # {}'.format(i))пш
             # print(json.loads(resp.text))
             ds_user_id = json.loads(resp.text)['created_user']['pk']
             with open('goods.txt', 'a') as f:
