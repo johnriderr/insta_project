@@ -92,21 +92,16 @@ def encrypt_data_sha256(data):
 
 
 def url_encode(data):
-    # data = {'q': 'Python URL encoding', 'as_sitesearch': 'www.urlencoder.io'}
-    # print('data')
-    # print(data)
-    # print()
-    # print('urllib.parse.urlencode(json.loads(data))')
-    # print(urllib.parse.urlencode(json.loads(data)))
-    # print()
-    # print('urllib.parse.quote(data)')
-    # print(urllib.parse.quote(data))
-    # print()
-
     return urllib.parse.quote(data)
 
 
-def reg_request(user_agent, cookie, encrypted_data, url_encoded_data, session, proxies, i, repeat):
+def gen_str_for_proxy_to_add_to_login():
+    return '-session-{}'.format(
+                 ''.join(random.choice(
+                     string.ascii_uppercase + string.ascii_lowercase) for _ in range(random.randint(7, 10))))
+
+
+def reg_request(proxy, user_agent, cookie, encrypted_data, url_encoded_data, session, proxies, i, repeat):
     headers = {'User-Agent': user_agent, 'X-IG-Connection-Speed': str(randint(1, 3000)) + 'kbps',
                'X-IG-Bandwidth-Speed-KBPS': '{}.{}'.format(randint(1, 3000), randint(100, 300)),
                'X-IG-Bandwidth-TotalBytes-B': str(randint(100, 9999)),
@@ -122,9 +117,16 @@ def reg_request(user_agent, cookie, encrypted_data, url_encoded_data, session, p
                'Accept-Encoding': 'gzip'
                }
     body = 'signed_body={0}.{1}&ig_sig_key_version=4'.format(encrypted_data, url_encoded_data)
+
+    # print('encrypted_data')
     # print(encrypted_data)
+    # print('url_encoded_data')
     # print(url_encoded_data)
+    # print('body')
     # print(body)
+    # print('headers')
+    # print(headers)
+    # print('-'*100)
     # body='signed_body=e1134a48d7aa748c81d95481ff1baa60fd5dd3a5d2fa3e2ec37ac96b137c2551.%7b%22tos_version%22%3a%22row%22%2c%22suggestedUsername%22%3a%22%22%2c%22allow_contacts_sync%22%3a%22true%22%2c%22sn_result%22%3a%22API_ERROR%3a%2bnull%22%2c%22phone_id%22%3a%22ffafebac-ff11-40a2-acb1-ffec6c7451dd%22%2c%22_csrftoken%22%3a%22rlunUuWJkhpNwO6gqHchpihdTXQgZQhr%22%2c%22username%22%3a%22Nova.loxqxtn_21867%22%2c%22first_name%22%3a%22vil%22%2c%22adid%22%3a%22f97ef285-6fb1-4f42-a2a8-315f8967ccdc%22%2c%22guid%22%3a%22a8574181-dd16-447e-a9a4-1a4222860603%22%2c%22device_id%22%3a%22android-h24w495xyq5wjwm3%22%2c%22email%22%3a%22Nova.loxqxtn_21867%40gmail.com%22%2c%22sn_nonce%22%3a%22Tm92YS5sb3hxeHRuXzIxODY3QGdtYWlsLmNvbXwxNTc3MjQ2NzYyfGtxNmNVSHd6VkVjWQ%3d%3d%22%2c%22force_sign_up_code%22%3a%22%22%2c%22waterfall_id%22%3a%22fd30b6de-6237-4921-af07-674979778d8d%22%2c%22qs_stamp%22%3a%22%22%2c%22password%22%3a%22oKnZXwcU1%22%7d&ig_sig_key_version=4'
 
     # pr_login = 'lum-customer-aklimkin-zone-zone3test'
@@ -133,8 +135,10 @@ def reg_request(user_agent, cookie, encrypted_data, url_encoded_data, session, p
     #         string.ascii_uppercase + string.ascii_lowercase) for _ in range(random.randint(7, 10))))
     # print(proxy)
 
+
+
     mproxies = {
-        "https": "http://{}:{}@{}:{}".format(proxies[i].login, proxies[i].pw,  proxies[i].ip, proxies[i].port)
+        "https": "http://{}:{}@{}:{}".format(proxy.login, proxy.pw,  proxy.ip, proxy.port)
     }
     if not repeat:
         session.proxies.update(mproxies)
@@ -154,6 +158,6 @@ def reg_request(user_agent, cookie, encrypted_data, url_encoded_data, session, p
     #     f.write('headers:\n')
     #     f.write(str(headers))
     #     f.write('\n')
-
     r = session.post('https://i.instagram.com/api/v1/accounts/create/', data=body, headers=headers, proxies=mproxies)
+    # print(r.text)
     return r

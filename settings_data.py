@@ -14,6 +14,9 @@ class Cookie:
         self.mid = mid
         self.ajax = ajax
 
+    def __str__(self):
+        return 'csrftoken:{} rur:{} mid:{} ajax:{}'.format(self.csrftoken, self.rur, self.mid, self.ajax)
+
 
 class SettingsDataClass:
     def __init__(self):
@@ -23,6 +26,9 @@ class SettingsDataClass:
         self.cookies = None
         self.devices = None
         self.locales = None
+        self.user_agents_for_getting_cookies = None
+        self.proxies_for_getting_cookies = None
+        self.gen_str_for_proxy = None
         # self.mails = None
         # self.usernames = None
 

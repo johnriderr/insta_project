@@ -13,44 +13,37 @@ def load_settings():
     settings_dict['gen_str_for_proxy'] = True if settings_dict['gen_str_for_proxy'] == 'yes' else False
 
 
-def load_proxies(gen_str_for_proxy, count):
+def load_proxies(gen_str_for_proxy):
     with open(settings_dict['proxies_path']) as f:
         raw_proxies = [line.rstrip() for line in f.readlines()]
 
     proxies = []
-    pr = raw_proxies[0]
-    for i in range(count):
-        tmp_pr = pr.split(':')
-        if len(tmp_pr) == 4:  # proxy has ip, port, login, pass
-            proxies.append(Proxy(tmp_pr[0], tmp_pr[1], tmp_pr[2], tmp_pr[3]))
-        elif len(tmp_pr) == 2:  # proxy has ip and port
-            proxies.append(Proxy(tmp_pr[0], tmp_pr[1], None, None))
-        else:  # proxy parse error
-            raise ValueError('Error data in proxy file')
-
-    if gen_str_for_proxy:
-        for pr in proxies:
-            if pr.login:
-                pr.login += '-session-{}'.format(
-                    ''.join(random.choice(
-                        string.ascii_uppercase + string.ascii_lowercase) for _ in range(random.randint(7, 10))))
+    ip = raw_proxies[0].split(':')[0]
+    port = raw_proxies[0].split(':')[1]
+    login = raw_proxies[0].split(':')[2]
+    pw = raw_proxies[0].split(':')[3]
+    proxies.append(Proxy(ip, port, login, pw))
+    #
+    #
+    # if gen_str_for_proxy:
+    #     for pr in proxies:
+    #         if pr.login:
+    #             pr.login += '-session-{}'.format(
+    #                 ''.join(random.choice(
+    #                     string.ascii_uppercase + string.ascii_lowercase) for _ in range(random.randint(7, 10))))
 
     return proxies
 
 
-def load_names(count):
+def load_names():
     with open(settings_dict['names_path']) as f:
         names = [line.rstrip() for line in f.readlines()]
-    while len(names) < count:
-        names.append(names[random.randint(0, len(names)-1)])
     return names
 
 
-def load_surnames(count):
+def load_surnames():
     with open(settings_dict['surnames_path']) as f:
         surnames = [line.rstrip() for line in f.readlines()]
-    while len(surnames) < count:
-        surnames.append(surnames[random.randint(0, len(surnames)-1)])
     return surnames
 
 
@@ -86,12 +79,25 @@ def load_devices():
     return devices
 
 
-def load_data(number_of_iterations, delete_used_cookies):
-    SettingsData.cookies, number_of_iterations = load_cookies(number_of_iterations, delete_used_cookies)
+def load_data(number_of_iterations, delete_used_cookies, cookie_from_request):
+    if not cookie_from_request:
+        SettingsData.cookies, number_of_iterations = load_cookies(number_of_iterations, delete_used_cookies)
 
-    SettingsData.proxies = load_proxies(settings_dict['gen_str_for_proxy'], number_of_iterations)
-    SettingsData.names = load_names(number_of_iterations)
-    SettingsData.surnames = load_surnames(number_of_iterations)
+    SettingsData.proxies = load_proxies(settings_dict['gen_str_for_proxy'])
+    SettingsData.names = load_names()
+    SettingsData.surnames = load_surnames()
     SettingsData.locales = load_locales()
     SettingsData.devices = load_devices()
     return number_of_iterations
+
+
+def load_user_agents_for_getting_cookies():
+    with open(settings_dict['user_agents_for_getting_cookies']) as f:
+        user_agents = [line.rstrip() for line in f.readlines()]
+    SettingsData.user_agents_for_getting_cookies = user_agents
+
+
+def load_proxies_for_getting_cookies():
+    with open(settings_dict['proxies_for_getting_cookies']) as f:
+        proxies = [line.rstrip() for line in f.readlines()]
+    SettingsData.proxies_for_getting_cookies = proxies
