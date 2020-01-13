@@ -1,6 +1,5 @@
 import random, string, time, base64, hashlib, json, requests
 from random import randint
-from settings_data import settings_dict
 import urllib.parse
 
 
@@ -35,15 +34,15 @@ def generate_username(mail):
     return mail.split('@')[0]
 
 
-def generate_user_agent(devices, locales):
+def generate_user_agent(settings, devices, locales):
     rand_locale = locales[randint(0, len(locales)-1)]
     rand_device = devices[randint(0, len(devices)-1)]
     rand_device = '  '.join(rand_device.split()[:-2])
     user_agent = 'Instagram {0} Android ({1} {2}; {3})'.format(
-        settings_dict['version'],
+        settings['version'],
         rand_device,
         rand_locale,
-        settings_dict['version_code']
+        settings['version_code']
     )
     return user_agent
 

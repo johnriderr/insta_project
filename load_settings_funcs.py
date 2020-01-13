@@ -1,20 +1,18 @@
 import json, random, string
 from network_classes import Proxy
-from settings_data import settings_dict, SettingsData, Cookie
+from settings_data import SettingsData, Cookie
 import os
 
 
 def load_settings():
-    if os.path.exists('resp_text.txt'):
-        os.remove('resp_text.txt')
-
     with open('settings.txt') as f:
-        settings_dict.update(json.load(f))
-    settings_dict['gen_str_for_proxy'] = True if settings_dict['gen_str_for_proxy'] == 'yes' else False
+        settings = json.load(f)
+        settings['gen_str_for_proxy'] = bool(settings['gen_str_for_proxy'])
+    return settings
 
 
-def load_proxies(gen_str_for_proxy):
-    with open(settings_dict['proxies_path']) as f:
+def load_proxies(settings):
+    with open(settings['proxies_path']) as f:
         raw_proxies = [line.rstrip() for line in f.readlines()]
 
     proxies = []
@@ -35,23 +33,23 @@ def load_proxies(gen_str_for_proxy):
     return proxies
 
 
-def load_names():
-    with open(settings_dict['names_path']) as f:
+def load_names(settings):
+    with open(settings['names_path']) as f:
         names = [line.rstrip() for line in f.readlines()]
     return names
 
 
-def load_surnames():
-    with open(settings_dict['surnames_path']) as f:
+def load_surnames(settings):
+    with open(settings['surnames_path']) as f:
         surnames = [line.rstrip() for line in f.readlines()]
     return surnames
 
 
-def load_cookies(load_lines_count, delete_used=False):
+def load_cookies(settings, load_lines_count, delete_used=False):
     # Сколько строк прочли (load_lines) , столько удалили из файла
     cookies = []
 
-    with open(settings_dict['cookies_path']) as f:
+    with open(settings['cookies_path']) as f:
         # raw_cookies = [line.rstrip() for line in f.readlines()[:load_lines_count]]
         raw_cookies = [line.rstrip() for line in f.readlines()]
         if load_lines_count != -1:
@@ -60,44 +58,44 @@ def load_cookies(load_lines_count, delete_used=False):
 
     cookies = [Cookie(c.split(';')[0], c.split(';')[1], c.split(';')[2], c.split(';')[3]) for c in raw_cookies]
     if delete_used:
-        with open(settings_dict['cookies_path'], 'r') as f:
+        with open(settings['cookies_path'], 'r') as f:
             data = f.read().splitlines(True)
-        with open(settings_dict['cookies_path'], 'w') as f:
+        with open(settings['cookies_path'], 'w') as f:
             f.writelines(data[load_lines_count:])
     return cookies, load_lines_count
 
 
-def load_locales():
-    with open(settings_dict['locales_path']) as f:
+def load_locales(settings):
+    with open(settings['locales_path']) as f:
         locales = [line.rstrip() for line in f.readlines()]
     return locales
 
 
-def load_devices():
-    with open(settings_dict['devices_path']) as f:
+def load_devices(settings):
+    with open(settings['devices_path']) as f:
         devices = [line.rstrip() for line in f.readlines()]
     return devices
 
 
-def load_data(number_of_iterations, delete_used_cookies, cookie_from_request):
+def load_data(settings, number_of_iterations, delete_used_cookies, cookie_from_request):
     if not cookie_from_request:
-        SettingsData.cookies, number_of_iterations = load_cookies(number_of_iterations, delete_used_cookies)
+        SettingsData.cookies, number_of_iterations = load_cookies(settings, number_of_iterations, delete_used_cookies)
 
-    SettingsData.proxies = load_proxies(settings_dict['gen_str_for_proxy'])
-    SettingsData.names = load_names()
-    SettingsData.surnames = load_surnames()
-    SettingsData.locales = load_locales()
-    SettingsData.devices = load_devices()
+    SettingsData.proxies = load_proxies(settings)
+    SettingsData.names = load_names(settings)
+    SettingsData.surnames = load_surnames(settings)
+    SettingsData.locales = load_locales(settings)
+    SettingsData.devices = load_devices(settings)
     return number_of_iterations
 
 
-def load_user_agents_for_getting_cookies():
-    with open(settings_dict['user_agents_for_getting_cookies']) as f:
+def load_user_agents_for_getting_cookies(settings):
+    with open(settings['user_agents_for_getting_cookies']) as f:
         user_agents = [line.rstrip() for line in f.readlines()]
     SettingsData.user_agents_for_getting_cookies = user_agents
 
 
-def load_proxies_for_getting_cookies():
-    with open(settings_dict['proxies_for_getting_cookies']) as f:
+def load_proxies_for_getting_cookies(settings):
+    with open(settings['proxies_for_getting_cookies']) as f:
         proxies = [line.rstrip() for line in f.readlines()]
     SettingsData.proxies_for_getting_cookies = proxies
