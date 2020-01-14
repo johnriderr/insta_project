@@ -72,14 +72,14 @@ def reg_account_wrapper(i, settings, print_status_code, new_tech_data, get_cooki
     importlib.reload(requests)
     with requests.Session() as s:
         while True:
-            if not reg_account(s, i, pr, print_status_code, new_tech_data, cookie, name, surname, guid, guid2, guid3, adid, device_id, user_agent, repeat_reg, save_with_user_agent):
+            if not reg_account(s, i, settings, pr, print_status_code, new_tech_data, cookie, name, surname, guid, guid2, guid3, adid, device_id, user_agent, repeat_reg, save_with_user_agent):
                 break
             else:
                 repeat_reg = True
                 time.sleep(5)
 
 
-def reg_account(session, i, proxy, print_status_code, new_tech_data, cookie, name, surname, guid, guid2, guid3, adid, device_id, user_agent, repeat, save_with_user_agent=False):
+def reg_account(session, i, settings, proxy, print_status_code, new_tech_data, cookie, name, surname, guid, guid2, guid3, adid, device_id, user_agent, repeat, save_with_user_agent=False):
     if new_tech_data:
         user_agent = wwn.generate_user_agent(settings, SettingsData.devices, SettingsData.locales)
         guid = wwn.generate_guid()
