@@ -118,6 +118,9 @@ class Instagram(threading.Thread):
 
         return account_created
 
+    def change_bio(self):
+        pass
+
     def run(self):
         while True:
             if not self.create_account():
