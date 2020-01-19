@@ -1,7 +1,8 @@
 import json, random, string
 from network_classes import Proxy
-from settings_data import SettingsData, Cookie
+# from settings_data import SettingsData, Cookie
 import os
+from instagram import Cookie
 
 
 def load_settings():
@@ -62,7 +63,7 @@ def load_cookies(settings, load_lines_count, delete_used=False):
             data = f.read().splitlines(True)
         with open(settings['cookies_path'], 'w') as f:
             f.writelines(data[load_lines_count:])
-    return cookies, load_lines_count
+    return cookies
 
 
 def load_locales(settings):
@@ -92,10 +93,12 @@ def load_data(settings, number_of_iterations, delete_used_cookies, cookie_from_r
 def load_user_agents_for_getting_cookies(settings):
     with open(settings['user_agents_for_getting_cookies']) as f:
         user_agents = [line.rstrip() for line in f.readlines()]
-    SettingsData.user_agents_for_getting_cookies = user_agents
+    # SettingsData.user_agents_for_getting_cookies = user_agents
+    return user_agents
 
 
 def load_proxies_for_getting_cookies(settings):
     with open(settings['proxies_for_getting_cookies']) as f:
         proxies = [line.rstrip() for line in f.readlines()]
-    SettingsData.proxies_for_getting_cookies = proxies
+    # SettingsData.proxies_for_getting_cookies = proxies
+    return proxies

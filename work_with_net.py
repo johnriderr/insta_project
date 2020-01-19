@@ -143,7 +143,7 @@ def reg_request(proxy, user_agent, cookie, encrypted_data, url_encoded_data, ses
         session.proxies.update(mproxies)
     # r = session.post('https://jsonip.com/')
     # print(r.json()['ip'], r.status_code)
-    # with open('ip.txt', 'a') as f:
+    # with open('ip.txt', 'a') as f:gen_str_for_proxy_to_add_to_login
     #     f.write('{}\n'.format( r.json()['ip']))
     # print('BODY:')
     # print(body)

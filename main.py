@@ -1,10 +1,11 @@
 import json, random, string, hashlib, requests, threading, time, sys, argparse
-from load_settings_funcs import load_settings, load_data, load_proxies_for_getting_cookies, load_user_agents_for_getting_cookies
+# from load_settings import load_settings, load_data, load_proxies_for_getting_cookies, load_user_agents_for_getting_cookies
+import load_settings
 from settings_data import SettingsData
 import work_with_net as wwn
 import get_cookies
-from itertools import cycle
-from instagram import Proxy
+from itertools import cycle, count
+from instagram import Proxy, Instagram
 
 
 class ThreadWithReturnValue(threading.Thread):
@@ -24,7 +25,8 @@ class ThreadWithReturnValue(threading.Thread):
         return self._return
 
 
-def reg_account_wrapper(i, settings, print_status_code, new_tech_data, get_cookies_from_request=False, save_with_user_agent=False, proxy_for_getting_cookie=None, u_agent_for_getting_cookie=None):
+def reg_account_wrapper(i, settings, print_status_code, new_tech_data, get_cookies_from_request=False,
+                        save_with_user_agent=False, proxy_for_getting_cookie=None, u_agent_for_getting_cookie=None):
     repeat_reg = False
     user_agent = wwn.generate_user_agent(settings, SettingsData.devices, SettingsData.locales)
     guid = wwn.generate_guid()
@@ -72,7 +74,8 @@ def reg_account_wrapper(i, settings, print_status_code, new_tech_data, get_cooki
     importlib.reload(requests)
     with requests.Session() as s:
         while True:
-            if not reg_account(s, i, settings, pr, print_status_code, new_tech_data, cookie, name, surname, guid, guid2, guid3, adid, device_id, user_agent, repeat_reg, save_with_user_agent):
+            if not reg_account(s, i, settings, pr, print_status_code, new_tech_data, cookie, name, surname,
+                               guid, guid2, guid3, adid, device_id, user_agent, repeat_reg, save_with_user_agent):
                 break
             else:
                 repeat_reg = True
@@ -174,9 +177,21 @@ def make_command_line_args():
 def main():
     args = make_command_line_args()
     infinite_iterations = True if args['number_of_iterations'] == -1 else False
-    settings = load_settings()
+    settings = load_settings.load_settings()
+    args['gen_str_for_proxy'] = settings['gen_str_for_proxy']
+    proxies = load_settings.load_proxies(settings)
+    names = load_settings.load_names(settings)
+    surnames = load_settings.load_surnames(settings)
+    locales = load_settings.load_locales(settings)
+    devices = load_settings.load_devices(settings)
+    cookies = load_settings.load_cookies(settings, args['number_of_iterations'], args['delete_used_cookies'])
 
-    args['number_of_iterations'] = load_data(settings, args['number_of_iterations'], args['delete_used_cookies'], args['cookies_from_request'])
+    # print(len(cookies))
+    # # print(cookies[:2])
+    # for c in cookies[:2]:
+    #     print(c)
+    # time.sleep(100)
+    # args['number_of_iterations'] = load_settings.load_data(settings, args['number_of_iterations'], args['delete_used_cookies'], args['cookies_from_request'])
 
     print_timeout = 10
     if args['number_of_threads'] >= 50:
@@ -185,40 +200,44 @@ def main():
             print_timeout *= 2
 
     if args['cookies_from_request']:
-        load_proxies_for_getting_cookies()
-        load_user_agents_for_getting_cookies()
-        if args['number_of_iterations'] == -1:
-            number_of_iterations = 1000000
+        proxies_for_getting_cookies = load_settings.load_proxies_for_getting_cookies(settings)
+        user_agents_for_getting_cookies = load_settings.load_user_agents_for_getting_cookies(settings)
+        # if args['number_of_iterations'] == -1:
+        #     number_of_iterations = 1000000
+        proxy_u_agent_for_gettin_cookies = zip(cycle(proxies_for_getting_cookies), cycle(user_agents_for_getting_cookies))
 
-    while True:
-        proxy_u_agent = cycle(range(1))
+    iters = range(args['number_of_iterations']) if args['number_of_iterations'] !=-1 else count()
+
+    for i, cookie, name, surname, device, locale in zip(iters, cycle(cookies), cycle(names), cycle(surnames), cycle(devices), cycle(locales)):
+        while len(threading.enumerate()) - 1 >= args['number_of_threads']:
+            time.sleep(0.001)
+
+        user_agent = Instagram.generate_user_agent(settings, devices, locales)
+
         if args['cookies_from_request']:
-            proxy_u_agent = zip(cycle(SettingsData.proxies_for_getting_cookies),
-                                cycle(SettingsData.user_agents_for_getting_cookies))
-        for i, data in zip(range(args['number_of_iterations']), proxy_u_agent):
-            while len(threading.enumerate()) - 1 >= args['number_of_threads']:
-                time.sleep(0.001)
-            if args['cookies_from_request']:
-                proxy_for_getting_cookie = Proxy(data[0].split(':')[0], data[0].split(':')[1])
-                th = threading.Thread(target=reg_account_wrapper, args=(i, settings, args['print_status_code'],
-                                                                        args['new_tech_data'],
-                                                                        args['cookie_from_request'],
-                                                                        args['save_with_user_agent'],
-                                                                        proxy_for_getting_cookie,
-                                                                        data[1]))
-            else:
-                th = threading.Thread(target=reg_account_wrapper, args=(i, settings, args['print_status_code'],
-                                                                        args['new_tech_data'],
-                                                                        args['cookies_from_request'],
-                                                                        args['save_with_user_agent']))
-            th.start()
+            raw_proxy, u_agent = next(proxy_u_agent_for_gettin_cookies)
+            # print(raw_proxy)
+            # time.sleep(100)
+            proxy = Proxy(raw_proxy.split(':')[0], raw_proxy.split(':')[1])
 
-            if i % print_timeout == 0:
+            th = ThreadWithReturnValue(target=Instagram.get_cookie_from_request,
+                                       args=(proxy, u_agent))
+            th.start()
+            cookie = th.join()
+
+            # cookie = Instagram.get_cookie_from_request(proxy, u_agent)
+
+        if cookie:
+            # print(cookie)
+            insta = Instagram(args, proxies[0], cookie, user_agent, name, surname, device, locale, i)
+            insta.start()
+        else:
+            print('get_cookie_from_request error #', i)
+
+        if i % print_timeout == 0:
                 print('iters: ', i)
                 print('threads: ', len(threading.enumerate()) - 1)
 
-        if not infinite_iterations:
-            break
 
 
 if __name__ == '__main__':
