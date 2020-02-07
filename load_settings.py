@@ -49,7 +49,6 @@ def load_surnames(settings):
 def load_cookies(settings, load_lines_count, delete_used=False):
     # Сколько строк прочли (load_lines) , столько удалили из файла
     cookies = []
-
     with open(settings['cookies_path']) as f:
         # raw_cookies = [line.rstrip() for line in f.readlines()[:load_lines_count]]
         raw_cookies = [line.rstrip() for line in f.readlines()]
@@ -78,16 +77,36 @@ def load_devices(settings):
     return devices
 
 
-def load_data(settings, number_of_iterations, delete_used_cookies, cookie_from_request):
-    if not cookie_from_request:
-        SettingsData.cookies, number_of_iterations = load_cookies(settings, number_of_iterations, delete_used_cookies)
+# def load_devices_id(settings):
+#     with open(settings['devices_id_path']) as f:
+#         devices = [line.rstrip() for line in f.readlines()]
+#     return devices
+#
+#     # Сколько строк прочли (load_lines) , столько удалили из файла
+#     devices_id = []
+#     with open(settings['devices_id_path']) as f:
+#         devices_id = [line.rstrip() for line in f.readlines()]
+#         if load_lines_count != -1:
+#             raw_cookies = raw_cookies[:load_lines_count]
+#     load_lines_count = len(raw_cookies)
+#
+#     with open(settings['devices_id_path'], 'r') as f:
+#         data = f.read().splitlines(True)
+#     with open(settings['devices_id_path'], 'w') as f:
+#         f.writelines(data[load_lines_count:])
+#     return cookies
 
-    SettingsData.proxies = load_proxies(settings)
-    SettingsData.names = load_names(settings)
-    SettingsData.surnames = load_surnames(settings)
-    SettingsData.locales = load_locales(settings)
-    SettingsData.devices = load_devices(settings)
-    return number_of_iterations
+# def load_data(settings, number_of_iterations, delete_used_cookies, cookie_from_request):
+#     if not cookie_from_request:
+#         SettingsData.cookies, number_of_iterations = load_cookies(settings, number_of_iterations, delete_used_cookies)
+#
+#
+#     SettingsData.proxies = load_proxies(settings)
+#     SettingsData.names = load_names(settings)
+#     SettingsData.surnames = load_surnames(settings)
+#     SettingsData.locales = load_locales(settings)
+#     SettingsData.devices = load_devices(settings)
+#     return number_of_iterations
 
 
 def load_user_agents_for_getting_cookies(settings):
