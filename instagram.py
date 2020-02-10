@@ -116,6 +116,8 @@ class Instagram(threading.Thread):
                     winsound.Beep(300, 100)
 
                     ds_user_id = json.loads(r.text)['created_user']['pk']
+                    session_id = self.session.cookies.get_dict()['sessionid']
+
                     with open('goods.txt', 'a') as f:
                         u_agent_to_save = self.user_agent if self.args['save_with_user_agent'] else ''
                         text_to_save = '{username}:{pw}|{u_agent_to_save}|{device_id};{guid2};{guid};{adid}|ds_user={username};' \
@@ -128,7 +130,7 @@ class Instagram(threading.Thread):
                                                                 mid=self.cookie.mid,
                                                                 csrftoken=self.cookie.csrftoken,
                                                                 ds_user_id=ds_user_id,
-                                                                session_id=self.session.cookies.get_dict()['sessionid'],
+                                                                session_id=session_id,
                                                                 u_agent_to_save=u_agent_to_save)
 
                         f.write(text_to_save)
@@ -148,7 +150,7 @@ class Instagram(threading.Thread):
                                                     mid=self.cookie.mid,
                                                     csrftoken=self.cookie.csrftoken,
                                                     ds_user_id=ds_user_id,
-                                                    session_id=self.session.cookies.get_dict()['sessionid'],
+                                                    session_id=session_id,
                                                     user_agent=self.user_agent,
                                                     surname=self.surname,
                                                     sn_nonce=sn_nonce)
@@ -159,6 +161,13 @@ class Instagram(threading.Thread):
                             bio_text = f.read()
 
                         self.set_bio(self.session.cookies.get_dict()['sessionid'], ds_user_id, bio_text)
+                    if self.args['subscribe']:
+                        insta_users_id = []
+                        with open(self.settings['subscribe_path'], 'r') as f:
+                            insta_users_id = [line.strip() for line in f.readlines()]
+                        for u_id in insta_users_id:
+                            print('id to subs: {}'.format(u_id))
+                            self.subscribe(session_id, ds_user_id, u_id)
 
         except requests.exceptions.ProxyError:
             print('requests.exceptions.ProxyError #', self.thr_id)
