@@ -43,8 +43,8 @@ class Instagram(threading.Thread):
         self.surname = surname
         self.device = device
         self.locale = locale
-        # self.mail = self.generate_mail(self.name)
-        # self.username = self.generate_username(self.mail)
+        self.mail = self.generate_mail(self.name)
+        self.username = self.generate_username(self.name)
         self.args = args
         self.guid = self.generate_guid()
         self.guid2 = self.generate_guid()
@@ -90,13 +90,14 @@ class Instagram(threading.Thread):
                    'Connection': 'Keep-Alive',
                    'Accept-Encoding': 'gzip'
                    }
-        mail = self.generate_mail(self.name)
-        username = self.generate_username(mail)
-        sn_nonce = self.generate_sn_nonce(mail)
+        # mail = self.generate_mail(self.name)
+        # username = self.generate_username(mail)
+        sn_nonce = self.generate_sn_nonce(self.mail)
         pw = self.generate_pw()
         data = self.generate_data_for_create_account(self.guid, self.guid2, self.guid3, self.adid, self.cookie.csrftoken,
-                                                     username, self.surname, self.device_id, mail, sn_nonce, pw)
-
+                                                     self.username, self.surname, self.device_id, self.mail, sn_nonce, pw)
+        # print('data to send:')
+        # print(data)
         encrypted_data = self.encrypt_data_sha256(data)
         self.encrypted_data = encrypted_data
 
@@ -105,6 +106,7 @@ class Instagram(threading.Thread):
         try:
             r = self.session.post('https://i.instagram.com/api/v1/accounts/create/', data=body, headers=headers)
             # print(json.loads(r.text))
+            # print('-'*200)
             if self.args['print_status_code']:
                 print('# {}. HTPP status code: {}'.format(self.thr_id, r.status_code))
             if 'created_user' in json.loads(r.text):
