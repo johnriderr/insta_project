@@ -125,7 +125,7 @@ class Instagram(threading.Thread):
                         text_to_save = '{username}:{pw}|{u_agent_to_save}|{device_id};{guid2};{guid};{adid}|ds_user={username};' \
                                        'rur={rur};mid={mid};csrftoken={csrftoken};ds_user_id={ds_user_id};' \
                                        'sessionid={session_id};is_starred_enabled=yes;urlgen=;||'.format(
-                                                                username=username, pw=pw,
+                                                                username=self.username, pw=pw,
                                                                 device_id=self.device_id,
                                                                 guid2=self.guid2, guid=self.guid, adid=self.adid,
                                                                 rur=self.cookie.rur,
@@ -142,7 +142,7 @@ class Instagram(threading.Thread):
 
 
                                 # dict_to_save = {'username': username, 'pw': pw, 'user_agent': self.user_agent, device_id=self.device_id}
-                                dict_to_save = dict(username=username, pw=pw,
+                                dict_to_save = dict(username=self.username, pw=pw,
                                                     device_id=self.device_id,
                                                     guid2=self.guid2,
                                                     guid=self.guid,
