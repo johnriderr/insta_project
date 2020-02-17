@@ -195,12 +195,13 @@ class Instagram(threading.Thread):
                    'Connection': 'Keep-Alive',
                    'Accept-Encoding': 'gzip'}
 
-        data = self.gen_data_for_subscribe()
+        data = self.gen_data_for_subscribe(user_id, user_id_to_subscribe)
         encrypted_data = self.encrypt_data_sha256(data)
         body = 'signed_body={}.{}&ig_sig_key_version=4'.format(encrypted_data, data)
-
-        r = requests.post('https://i.instagram.com/api/v1/friendships/create/393066635/', data=body, headers=headers)
-
+        url = 'https://i.instagram.com/api/v1/friendships/create/{}/'.format(user_id_to_subscribe)
+        r = requests.post(url, data=body, headers=headers)
+        print('response from subs:')
+        print(json.loads(r.text))
     def set_bio(self, session_id, user_id, bio_text):
         headers = {'User-Agent': self.user_agent, 'X-IG-Connection-Speed': str(randint(1, 3000)) + 'kbps',
                    'X-IG-Bandwidth-Speed-KBPS': '{}.{}'.format(randint(1, 3000), randint(100, 300)),
@@ -228,7 +229,7 @@ class Instagram(threading.Thread):
         data = '{{"_csrftoken":"{csrftoken}","user_id":"{user_id_to_subscribe}","radio_type":"wifi-none",' \
                '"_uid":"{user_id}","device_id":"android-2503eaab5a2d6349","_uuid":"{guid}"}}'
         guid = self.generate_guid()
-        data = data.format(csrftoken=self.cookie.csrftoken, uid=user_id,
+        data = data.format(csrftoken=self.cookie.csrftoken, user_id=user_id,
                            device_id=self.device_id, user_id_to_subscribe=user_id_to_subscribe, guid=guid)
 
         return data
