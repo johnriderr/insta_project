@@ -29,12 +29,15 @@ class Instagram(threading.Thread):
         threading.Thread.__init__(self)
         self.session = requests.session()
         self.settings = settings
-        gen_str = ''
-        if args['gen_str_for_proxy']:
-            gen_str = self.gen_str_for_proxy_to_add_to_login()
+        # gen_str = ''
+        # if args['gen_str_for_proxy']:
+        #     gen_str = self.gen_str_for_proxy_to_add_to_login()
+        # my_proxy = {
+        #     "https": "http://{}:{}@{}:{}".format(proxy.login + gen_str, proxy.pw, proxy.ip, proxy.port)
+        # }
         my_proxy = {
-            "https": "http://{}:{}@{}:{}".format(proxy.login + gen_str, proxy.pw, proxy.ip, proxy.port)
-        }
+                "http": "http://{}:{}".format(proxy.ip, proxy.port)
+            }
         self.session.proxies.update(my_proxy)
         self.proxy = proxy
         self.cookie = cookie
@@ -105,8 +108,8 @@ class Instagram(threading.Thread):
         body = 'signed_body={0}.{1}&ig_sig_key_version=4'.format(encrypted_data, url_encoded_data)
         try:
             r = self.session.post('https://i.instagram.com/api/v1/accounts/create/', data=body, headers=headers)
-            # print(json.loads(r.text))
-            # print('-'*200)
+            print(json.loads(r.text))
+            print('-'*200)
             if self.args['print_status_code']:
                 print('# {}. HTPP status code: {}'.format(self.thr_id, r.status_code))
             if 'created_user' in json.loads(r.text):

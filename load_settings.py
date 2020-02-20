@@ -16,12 +16,15 @@ def load_proxies(settings):
     with open(settings['proxies_path']) as f:
         raw_proxies = [line.rstrip() for line in f.readlines()]
 
-    proxies = []
-    ip = raw_proxies[0].split(':')[0]
-    port = raw_proxies[0].split(':')[1]
-    login = raw_proxies[0].split(':')[2]
-    pw = raw_proxies[0].split(':')[3]
-    proxies.append(Proxy(ip, port, login, pw))
+    proxies = [Proxy(pr.split(':')[0], pr.split(':')[1])
+               for pr in raw_proxies]
+
+    # proxies = []
+    # ip = raw_proxies[0].split(':')[0]
+    # port = raw_proxies[0].split(':')[1]
+    # login = raw_proxies[0].split(':')[2]
+    # pw = raw_proxies[0].split(':')[3]
+    # proxies.append(Proxy(ip, port, login, pw))
     #
     #
     # if gen_str_for_proxy:

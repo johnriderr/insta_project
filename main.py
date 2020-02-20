@@ -72,6 +72,7 @@ def main():
     settings = load_settings.load_settings()
     args['gen_str_for_proxy'] = settings['gen_str_for_proxy']
     proxies = load_settings.load_proxies(settings)
+
     names = load_settings.load_names(settings)
     surnames = load_settings.load_surnames(settings)
     locales = load_settings.load_locales(settings)
@@ -93,7 +94,8 @@ def main():
 
     iters = range(args['number_of_iterations']) if args['number_of_iterations'] !=-1 else count()
 
-    for i, cookie, name, surname, device, locale in zip(iters, cycle(cookies), cycle(names), cycle(surnames), cycle(devices), cycle(locales)):
+    for i, cookie, name, surname, device, locale, proxy\
+            in zip(iters, cycle(cookies), cycle(names), cycle(surnames), cycle(devices), cycle(locales), cycle(proxies)):
         while len(threading.enumerate()) - 1 >= args['number_of_threads']:
             time.sleep(0.001)
 
@@ -103,10 +105,10 @@ def main():
             raw_proxy, u_agent = next(proxy_u_agent_for_gettin_cookies)
             # print(raw_proxy)
             # time.sleep(100)
-            proxy = Proxy(raw_proxy.split(':')[0], raw_proxy.split(':')[1])
+            proxy_for_cookie = Proxy(raw_proxy.split(':')[0], raw_proxy.split(':')[1])
 
             th = ThreadWithReturnValue(target=Instagram.get_cookie_from_request,
-                                       args=(proxy, u_agent))
+                                       args=(proxy_for_cookie, u_agent))
             th.start()
             cookie = th.join()
 
@@ -114,7 +116,7 @@ def main():
 
         if cookie:
             # print(cookie)
-            insta = Instagram(args, settings, proxies[0], cookie, user_agent, name, surname, device, locale, i)
+            insta = Instagram(args, settings, proxy, cookie, user_agent, name, surname, device, locale, i)
             insta.start()
         else:
             print('get_cookie_from_request error #', i)
